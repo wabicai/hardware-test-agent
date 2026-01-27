@@ -1,0 +1,1 @@
+"use strict";const e=require("electron");e.contextBridge.exposeInMainWorld("electronAPI",{fs:{saveReport:(r,o)=>e.ipcRenderer.invoke("fs:saveReport",r,o),selectDirectory:()=>e.ipcRenderer.invoke("fs:selectDirectory")},app:{getInfo:()=>e.ipcRenderer.invoke("app:getInfo")}});
