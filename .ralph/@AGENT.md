@@ -1,158 +1,123 @@
-# Agent Build Instructions
+# Hardware Test Agent - Build Instructions
 
 ## Project Setup
 ```bash
-# Install dependencies (example for Node.js project)
-npm install
+# Install dependencies
+pnpm install
 
-# Or for Python project
-pip install -r requirements.txt
-
-# Or for Rust project  
-cargo build
+# If pnpm not installed
+npm install -g pnpm
 ```
+
+## Development
+
+### Run Development Server
+```bash
+# Run Electron app in development mode
+pnpm dev:electron
+
+# Or run just the Vite dev server (renderer only)
+pnpm dev
+```
+
+### Build for Production
+```bash
+# Build Vite bundles (renderer + main + preload)
+pnpm build:vite
+
+# Full build with installers
+cd packages/desktop && pnpm build
+```
+
+### Build Outputs
+```
+packages/desktop/dist/
+├── main/          # Electron main process
+├── preload/       # Preload scripts
+└── renderer/      # React app (HTML/CSS/JS)
+```
+
+## Project Structure
+```
+hardware-test-agent/
+├── packages/
+│   ├── desktop/           # Electron + React app
+│   │   ├── src/
+│   │   │   ├── main/      # Electron main process
+│   │   │   ├── preload/   # IPC bridge
+│   │   │   └── renderer/  # React app
+│   │   │       ├── components/
+│   │   │       ├── contexts/
+│   │   │       ├── pages/
+│   │   │       └── services/
+│   │   └── dist/          # Build output
+│   └── test-core/         # Shared types (minimal)
+├── .ralph/                # Ralph configuration
+└── pnpm-workspace.yaml
+```
+
+## Key Files
+- `packages/desktop/src/renderer/services/sdk.ts` - SDK WebUSB integration
+- `packages/desktop/src/renderer/services/testRunner.ts` - Test execution engine
+- `packages/desktop/src/renderer/services/testSuites.ts` - Test suite definitions
+- `packages/desktop/src/renderer/services/reportStorage.ts` - Report persistence
+- `packages/desktop/src/renderer/contexts/SDKContext.tsx` - React SDK state
 
 ## Running Tests
 ```bash
-# Node.js
-npm test
+# Currently no automated tests for the app itself
+# Hardware device required for integration testing
 
-# Python
-pytest
-
-# Rust
-cargo test
-```
-
-## Build Commands
-```bash
-# Production build
-npm run build
-# or
-cargo build --release
-```
-
-## Development Server
-```bash
-# Start development server
-npm run dev
-# or
-cargo run
+# Manual testing:
+# 1. Run `pnpm dev:electron`
+# 2. Connect OneKey device via USB
+# 3. Click "选择设备" to select via WebUSB
+# 4. Navigate to Test Runner and run tests
 ```
 
 ## Key Learnings
-- Update this section when you learn new build optimizations
-- Document any gotchas or special setup requirements
-- Keep track of the fastest test/build cycle
 
-## Feature Development Quality Standards
+### WebUSB Constraint
+The SDK must run in the renderer process because WebUSB `requestDevice()` requires a user gesture (click). Cannot be called from main process.
 
-**CRITICAL**: All new features MUST meet the following mandatory requirements before being considered complete.
+### CSP Requirements
+Content Security Policy must allow:
+- `connect-src` for *.onekey.so and *.onekeycn.com
+- `unsafe-eval` for SDK dynamic imports
 
-### Testing Requirements
+### Vite + Electron Path Resolution
+When using `root: 'src/renderer'`, electron plugin entries need absolute paths:
+```typescript
+entry: path.resolve(__dirname, 'src/main/index.ts')
+```
 
-- **Minimum Coverage**: 85% code coverage ratio required for all new code
-- **Test Pass Rate**: 100% - all tests must pass, no exceptions
-- **Test Types Required**:
-  - Unit tests for all business logic and services
-  - Integration tests for API endpoints or main functionality
-  - End-to-end tests for critical user workflows
-- **Coverage Validation**: Run coverage reports before marking features complete:
-  ```bash
-  # Examples by language/framework
-  npm run test:coverage
-  pytest --cov=src tests/ --cov-report=term-missing
-  cargo tarpaulin --out Html
-  ```
-- **Test Quality**: Tests must validate behavior, not just achieve coverage metrics
-- **Test Documentation**: Complex test scenarios must include comments explaining the test strategy
+### Auto PIN/Passphrase
+Use `sdk.on(UI_EVENT, handler)` to intercept and auto-respond to device prompts. Response format:
+```typescript
+sdk.uiResponse({
+  type: UI_REQUEST.RECEIVE_PIN,
+  payload: '123456'
+});
+```
 
-### Git Workflow Requirements
+## Feature Development Checklist
 
-Before moving to the next feature, ALL changes must be:
+Before marking features complete:
+- [ ] Code builds without errors (`pnpm build:vite`)
+- [ ] App starts without console errors
+- [ ] Device connection works via WebUSB
+- [ ] Changes committed with conventional commit messages
+- [ ] @fix_plan.md updated with progress
 
-1. **Committed with Clear Messages**:
-   ```bash
-   git add .
-   git commit -m "feat(module): descriptive message following conventional commits"
-   ```
-   - Use conventional commit format: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, etc.
-   - Include scope when applicable: `feat(api):`, `fix(ui):`, `test(auth):`
-   - Write descriptive messages that explain WHAT changed and WHY
+## Troubleshooting
 
-2. **Pushed to Remote Repository**:
-   ```bash
-   git push origin <branch-name>
-   ```
-   - Never leave completed features uncommitted
-   - Push regularly to maintain backup and enable collaboration
-   - Ensure CI/CD pipelines pass before considering feature complete
+### "SDK not initialized"
+Wait for SDK init in useEffect, check `initialized` state before actions.
 
-3. **Branch Hygiene**:
-   - Work on feature branches, never directly on `main`
-   - Branch naming convention: `feature/<feature-name>`, `fix/<issue-name>`, `docs/<doc-update>`
-   - Create pull requests for all significant changes
+### WebUSB device not showing
+- Ensure device is connected via USB (not Bluetooth)
+- Try unplugging and replugging the device
+- Check browser WebUSB support (Chromium-based required)
 
-4. **Ralph Integration**:
-   - Update .ralph/@fix_plan.md with new tasks before starting work
-   - Mark items complete in .ralph/@fix_plan.md upon completion
-   - Update .ralph/PROMPT.md if development patterns change
-   - Test features work within Ralph's autonomous loop
-
-### Documentation Requirements
-
-**ALL implementation documentation MUST remain synchronized with the codebase**:
-
-1. **Code Documentation**:
-   - Language-appropriate documentation (JSDoc, docstrings, etc.)
-   - Update inline comments when implementation changes
-   - Remove outdated comments immediately
-
-2. **Implementation Documentation**:
-   - Update relevant sections in this AGENT.md file
-   - Keep build and test commands current
-   - Update configuration examples when defaults change
-   - Document breaking changes prominently
-
-3. **README Updates**:
-   - Keep feature lists current
-   - Update setup instructions when dependencies change
-   - Maintain accurate command examples
-   - Update version compatibility information
-
-4. **AGENT.md Maintenance**:
-   - Add new build patterns to relevant sections
-   - Update "Key Learnings" with new insights
-   - Keep command examples accurate and tested
-   - Document new testing patterns or quality gates
-
-### Feature Completion Checklist
-
-Before marking ANY feature as complete, verify:
-
-- [ ] All tests pass with appropriate framework command
-- [ ] Code coverage meets 85% minimum threshold
-- [ ] Coverage report reviewed for meaningful test quality
-- [ ] Code formatted according to project standards
-- [ ] Type checking passes (if applicable)
-- [ ] All changes committed with conventional commit messages
-- [ ] All commits pushed to remote repository
-- [ ] .ralph/@fix_plan.md task marked as complete
-- [ ] Implementation documentation updated
-- [ ] Inline code comments updated or added
-- [ ] .ralph/@AGENT.md updated (if new patterns introduced)
-- [ ] Breaking changes documented
-- [ ] Features tested within Ralph loop (if applicable)
-- [ ] CI/CD pipeline passes
-
-### Rationale
-
-These standards ensure:
-- **Quality**: High test coverage and pass rates prevent regressions
-- **Traceability**: Git commits and .ralph/@fix_plan.md provide clear history of changes
-- **Maintainability**: Current documentation reduces onboarding time and prevents knowledge loss
-- **Collaboration**: Pushed changes enable team visibility and code review
-- **Reliability**: Consistent quality gates maintain production stability
-- **Automation**: Ralph integration ensures continuous development practices
-
-**Enforcement**: AI agents should automatically apply these standards to all feature development tasks without requiring explicit instruction for each task.
+### Build fails with entry not found
+Use absolute paths in vite.config.ts for electron plugin entries.

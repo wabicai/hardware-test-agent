@@ -1,1 +1,28 @@
 node_modules
+dist
+release
+
+# Ralph internal state files
+.ralph/.call_count
+.ralph/.circuit_breaker_history
+.ralph/.circuit_breaker_state
+.ralph/.exit_signals
+.ralph/.last_reset
+.ralph/.ralph_session
+.ralph/progress.json
+.ralph/status.json
+.ralph/logs/
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.log
+*.tsbuildinfo
