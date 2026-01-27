@@ -26,3 +26,5 @@ Thumbs.db
 # Build artifacts
 *.log
 *.tsbuildinfo
+.ralph/.claude_session_id
+.ralph/.response_analysis
