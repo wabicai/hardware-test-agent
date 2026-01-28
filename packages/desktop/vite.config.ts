@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import electron from 'vite-plugin-electron';
-import renderer from 'vite-plugin-electron-renderer';
 import path from 'path';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
@@ -38,7 +37,6 @@ export default defineConfig({
         },
       },
     ]),
-    renderer(),
   ],
   root: 'src/renderer',
   build: {
@@ -48,6 +46,13 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src/renderer'),
+      buffer: 'buffer/',
     },
+  },
+  define: {
+    global: 'globalThis',
+  },
+  optimizeDeps: {
+    include: ['buffer'],
   },
 });

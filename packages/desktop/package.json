@@ -2,7 +2,6 @@
   "name": "@hardware-test/desktop",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "description": "Hardware Test Agent Desktop Application",
   "main": "dist/main/index.js",
   "scripts": {
@@ -16,6 +15,7 @@
   "dependencies": {
     "@hardware-test/test-core": "workspace:*",
     "@onekeyfe/hd-common-connect-sdk": "^1.1.22",
+    "buffer": "^6.0.3",
     "eventemitter3": "^5.0.1",
     "jotai": "^2.6.0",
     "react": "^18.2.0",
@@ -48,15 +48,24 @@
       "dist/**/*"
     ],
     "mac": {
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "icon": "build/icon.icns"
     },
     "win": {
-      "target": ["nsis", "zip"],
+      "target": [
+        "nsis",
+        "zip"
+      ],
       "icon": "build/icon.ico"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "icon": "build/icon.png"
     }
   }
