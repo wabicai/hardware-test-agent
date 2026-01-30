@@ -1,23 +1,66 @@
 /**
  * Test Suites Definition
  *
- * Defines all available test suites for the hardware test agent
+ * Imports test suites from @hardware-test/test-core and adapts them for desktop use.
+ * Also provides simplified suites for quick testing.
  */
 
 import type { TestSuite, TestCase, TestContext } from './testRunner';
+import {
+  AddressSuite as CoreAddressSuite,
+  allSuites as coreAllSuites,
+} from '@hardware-test/test-core';
 
-// ============ Address Test Suite ============
+// ============ Adapted Address Suite from test-core ============
 
+/**
+ * AddressSuite that uses real test data from test-core
+ * Contains thousands of test cases with expected address values
+ */
 class AddressSuite implements TestSuite {
   id = 'address';
-  name = '地址测试';
-  description = '验证各链地址生成的正确性';
+  name = '地址测试 (完整数据)';
+  description = '使用完整测试数据验证各链地址生成的正确性';
+
+  private coreSuite = new CoreAddressSuite();
+  private initialized = false;
+
+  async setup(context: TestContext): Promise<void> {
+    // Adapt context for core suite
+    const coreContext = {
+      sdk: context.sdk,
+      connectId: context.connectId,
+      deviceId: context.deviceId,
+      deviceFeatures: context.device,
+      automationEngine: null,
+    };
+    await this.coreSuite.setup(coreContext as any);
+    this.initialized = true;
+    console.log(`[AddressSuite] Loaded ${this.getTestCases().length} test cases from test-core`);
+  }
+
+  getTestCases(): TestCase[] {
+    const coreCases = this.coreSuite.getTestCases();
+    // Adapt core test cases to desktop format
+    return coreCases.map((tc) => ({
+      ...tc,
+      expected: tc.expected ?? null,
+    }));
+  }
+}
+
+// ============ Quick Address Suite (simplified for fast testing) ============
+
+class QuickAddressSuite implements TestSuite {
+  id = 'address-quick';
+  name = '地址快速测试';
+  description = '快速验证主要链的地址生成（无预期值验证）';
 
   private testCases: TestCase[] = [];
 
   async setup(context: TestContext): Promise<void> {
     this.testCases = this.generateTestCases();
-    console.log(`[AddressSuite] Generated ${this.testCases.length} test cases`);
+    console.log(`[QuickAddressSuite] Generated ${this.testCases.length} test cases`);
   }
 
   getTestCases(): TestCase[] {
@@ -221,7 +264,8 @@ class BatchAddressSuite implements TestSuite {
 // ============ Export All Suites ============
 
 export const allSuites: TestSuite[] = [
-  new AddressSuite(),
+  new AddressSuite(),        // Full address tests with expected values from test-core
+  new QuickAddressSuite(),   // Quick address tests without expected value validation
   new PassphraseSuite(),
   new ChainMethodSuite(),
   new FunctionalSuite(),

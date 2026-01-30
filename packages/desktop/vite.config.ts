@@ -47,6 +47,8 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, 'src/renderer'),
       buffer: 'buffer/',
+      // Ensure workspace packages resolve correctly
+      '@hardware-test/test-core': path.resolve(__dirname, '../test-core/dist/index.mjs'),
     },
   },
   define: {
