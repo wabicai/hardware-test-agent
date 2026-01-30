@@ -1,4 +1,4 @@
-import { type PlaygroundProps } from '../../../components/Playground';
+import { type PlaygroundProps } from '../components/Playground';
 
 const solData: PlaygroundProps[] = [
   {

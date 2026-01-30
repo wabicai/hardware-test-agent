@@ -13,7 +13,8 @@ export type SLIP39TestCaseData = {
     method: string;
     name?: string;
     params?: any;
-    expectedAddress: Record<string, string>;
+    expectedAddress?: Record<string, string>;
+    expectedPublicKey?: Record<string, string>;
   }[];
 };
 

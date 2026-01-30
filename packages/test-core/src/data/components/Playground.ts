@@ -5,9 +5,13 @@
 
 export type PlaygroundProps = {
   method: string;
-  description: string;
-  presupposes: {
+  description?: string;
+  presupposes?: {
     title: string;
     value: any;
   }[];
+  // Optional flags
+  noDeviceIdReq?: boolean;
+  noConnIdReq?: boolean;
+  deprecated?: boolean;
 };

@@ -166,11 +166,13 @@ export class TestRunnerService extends EventEmitter<TestRunnerEvents> {
 
     try {
       for (const suite of suites) {
-        if (this.state === 'stopped') {
+        // Check if stopped (state may be changed by stop() method externally)
+        if (this.getState() === 'stopped') {
           break;
         }
 
-        while (this.state === 'paused') {
+        // Wait while paused (state may be changed by pause() method externally)
+        while (this.getState() === 'paused') {
           await this.delay(100);
         }
 

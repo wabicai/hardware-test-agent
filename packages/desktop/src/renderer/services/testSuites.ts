@@ -6,10 +6,7 @@
  */
 
 import type { TestSuite, TestCase, TestContext } from './testRunner';
-import {
-  AddressSuite as CoreAddressSuite,
-  allSuites as coreAllSuites,
-} from '@hardware-test/test-core';
+import { AddressSuite as CoreAddressSuite } from '@hardware-test/test-core';
 
 // ============ Adapted Address Suite from test-core ============
 
@@ -23,7 +20,6 @@ class AddressSuite implements TestSuite {
   description = '使用完整测试数据验证各链地址生成的正确性';
 
   private coreSuite = new CoreAddressSuite();
-  private initialized = false;
 
   async setup(context: TestContext): Promise<void> {
     // Adapt context for core suite
@@ -35,7 +31,6 @@ class AddressSuite implements TestSuite {
       automationEngine: null,
     };
     await this.coreSuite.setup(coreContext as any);
-    this.initialized = true;
     console.log(`[AddressSuite] Loaded ${this.getTestCases().length} test cases from test-core`);
   }
 
@@ -58,7 +53,7 @@ class QuickAddressSuite implements TestSuite {
 
   private testCases: TestCase[] = [];
 
-  async setup(context: TestContext): Promise<void> {
+  async setup(_context: TestContext): Promise<void> {
     this.testCases = this.generateTestCases();
     console.log(`[QuickAddressSuite] Generated ${this.testCases.length} test cases`);
   }
